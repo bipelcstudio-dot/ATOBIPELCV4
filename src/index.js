@@ -33,22 +33,77 @@ async function hashPassword(password) {
 
 async function verifyPassword(password, stored) {
   try {
+    // پشتیبانی از Hash قدیمی SHA-256
+    // برای مهاجرت کاربران قدیمی پروژه
+    if (!stored.startsWith("pbkdf2$")) {
+      const legacyHash = await sha256(password);
+
+      if (timingSafeEqual(
+        new TextEncoder().encode(legacyHash),
+        new TextEncoder().encode(stored)
+      )) {
+        return {
+          valid: true,
+          needsUpgrade: true
+        };
+      }
+
+      return {
+        valid: false,
+        needsUpgrade: false
+      };
+    }
+
+    // Hash جدید PBKDF2
     const [scheme, iter, saltB64, hashB64] = stored.split("$");
-    if (scheme !== "pbkdf2") return false;
+
+    if (scheme !== "pbkdf2") {
+      return {
+        valid: false,
+        needsUpgrade: false
+      };
+    }
+
     const enc = new TextEncoder();
     const salt = unb64(saltB64);
+
     const base = await crypto.subtle.importKey(
-      "raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]
+      "raw",
+      enc.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
     );
+
     const bits = await crypto.subtle.deriveBits(
-      { name: "PBKDF2", salt, iterations: Number(iter), hash: "SHA-256" },
-      base, 256
+      {
+        name: "PBKDF2",
+        salt,
+        iterations: Number(iter),
+        hash: "SHA-256"
+      },
+      base,
+      256
     );
-    return timingSafeEqual(new Uint8Array(bits), unb64(hashB64));
+
+    const valid = timingSafeEqual(
+      new Uint8Array(bits),
+      unb64(hashB64)
+    );
+
+    return {
+      valid,
+      needsUpgrade: false
+    };
+
   } catch {
-    return false;
+    return {
+      valid: false,
+      needsUpgrade: false
+    };
   }
 }
+
 
 function b64(bytes) {
   let s = "";
@@ -158,9 +213,37 @@ app.post("/api/auth/login", async c => {
   const user = await c.env.DB.prepare(`
     SELECT * FROM users WHERE (username = ? OR email = ?) LIMIT 1
   `).bind(username, username).first();
-  if (!user || user.status === "Inactive" || !(await verifyPassword(password, user.password_hash))) {
-    return json(c, { success: false, error: "نام کاربری یا رمز عبور اشتباه است." }, 401);
-  }
+ if (!user || user.status === "Inactive") {
+  return json(c, {
+    success: false,
+    error: "نام کاربری یا رمز عبور اشتباه است."
+  }, 401);
+}
+
+const passwordCheck = await verifyPassword(
+  password,
+  user.password_hash
+);
+
+if (!passwordCheck.valid) {
+  return json(c, {
+    success: false,
+    error: "نام کاربری یا رمز عبور اشتباه است."
+  }, 401);
+}
+
+// مهاجرت خودکار Hash قدیمی به PBKDF2
+if (passwordCheck.needsUpgrade) {
+  const newHash = await hashPassword(password);
+
+  await c.env.DB.prepare(`
+    UPDATE users
+    SET password_hash = ?
+    WHERE id = ?
+  `).bind(newHash, user.id).run();
+
+  user.password_hash = newHash;
+}
   const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
   const token = b64(tokenBytes);
   const tokenHash = await sha256(token);
