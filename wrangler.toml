@@ -1,0 +1,11 @@
+name = "studio-bipelak-automation"
+main = "src/index.js"
+compatibility_date = "2026-08-11"
+
+[assets]
+directory = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bipelak_automation_db"
+database_id = "6034e7b8-0313-49a7-84f6-09e90e86c987"
