@@ -211,8 +211,8 @@ app.post("/api/auth/login", async c => {
   const username = String(body.username || "").trim();
   const password = String(body.password || "");
   const user = await c.env.DB.prepare(`
-    SELECT * FROM users WHERE (username = ? OR email = ?) LIMIT 1
-  `).bind(username, username).first();
+    SELECT * FROM users WHERE username = ? LIMIT 1
+  `).bind(username).first();
  if (!user || user.status === "Inactive") {
   return json(c, {
     success: false,
