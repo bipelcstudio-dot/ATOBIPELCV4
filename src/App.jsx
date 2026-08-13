@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RequireAccess from "./components/RequireAccess";
 import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
@@ -21,11 +22,11 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="employees" element={<Employees />} />
+          <Route path="employees" element={<RequireAccess access="employees"><Employees /></RequireAccess>} />
           <Route path="tickets" element={<Tickets />} />
-          <Route path="chat" element={<Chat />} />
-          <Route path="finance" element={<Finance />} />
-          <Route path="projects" element={<Projects />} />
+          <Route path="chat" element={<RequireAccess access="chat"><Chat /></RequireAccess>} />
+          <Route path="finance" element={<RequireAccess access="finance"><Finance /></RequireAccess>} />
+          <Route path="projects" element={<RequireAccess access="projects"><Projects /></RequireAccess>} />
         </Route>
 
         <Route

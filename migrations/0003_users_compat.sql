@@ -1,0 +1,12 @@
+ALTER TABLE users ADD COLUMN email TEXT;
+ALTER TABLE users ADD COLUMN first_name TEXT;
+ALTER TABLE users ADD COLUMN last_name TEXT;
+ALTER TABLE users ADD COLUMN phone TEXT;
+ALTER TABLE users ADD COLUMN avatar_url TEXT;
+ALTER TABLE users ADD COLUMN department TEXT;
+ALTER TABLE users ADD COLUMN job_title TEXT;
+ALTER TABLE users ADD COLUMN employment_type TEXT DEFAULT 'Full-time';
+ALTER TABLE users ADD COLUMN employee_code TEXT;
+ALTER TABLE users ADD COLUMN start_date TEXT;
+ALTER TABLE users ADD COLUMN notes TEXT;
+ALTER TABLE users ADD COLUMN updated_at DATETIME;

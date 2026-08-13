@@ -1,0 +1,5 @@
+بعد از unzip:
+node apply-passwordless-selector.mjs
+node install-styles.mjs
+npm run build
+npx wrangler deploy
