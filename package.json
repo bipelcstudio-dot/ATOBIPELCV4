@@ -1,7 +1,7 @@
 {
-  "name": "bipelak-automation-v5",
+  "name": "bipelak-automation",
   "private": true,
   "type": "module",
-  "scripts": {"dev":"wrangler dev","deploy":"wrangler deploy","db:migrate":"wrangler d1 migrations apply bipelak-automation --remote"},
-  "devDependencies": {"wrangler":"^4.30.0"}
+  "scripts": {"dev":"wrangler dev","deploy":"wrangler deploy"},
+  "devDependencies": {"wrangler":"^4.120.1"}
 }
