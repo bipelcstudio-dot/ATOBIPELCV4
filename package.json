@@ -2,6 +2,13 @@
   "name": "bipelak-automation",
   "private": true,
   "type": "module",
-  "scripts": {"dev":"wrangler dev","deploy":"wrangler deploy"},
-  "devDependencies": {"wrangler":"^4.120.1"}
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "node --check src/index.js && echo Build complete",
+    "db:migrate": "wrangler d1 migrations apply DB --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.120.1"
+  }
 }
