@@ -9,6 +9,6 @@ not_found_handling = "single-page-application"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "bipelak-automation"
-database_id = "6034e7b8-0313-49a7-84f6-09e90e86c987"
+database_name = "kirkhar"
+database_id = "6eddd167-0af2-4ce5-a961-ce8f8af8e233"
 migrations_dir = "migrations"
