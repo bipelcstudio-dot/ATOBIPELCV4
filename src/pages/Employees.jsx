@@ -10,18 +10,18 @@ export default function Employees() {
   const [form, setForm] = useState(emptyForm);
 
   async function load() {
-    try { const d = await api("/users"); setUsers(d.users || []); }
+    try { const d = await api("/users"); setUsers(d.items || d.users || []); }
     catch (e) { setError(e.message || "خطا در دریافت کارکنان"); }
   }
-  useEffect(() => { load() }, []);
-  function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
+  useEffect(() => { load(); }, []);
+  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
   async function submit(e) {
     e.preventDefault(); setError(""); setBusy(true);
     try {
       await api("/users", { method: "POST", body: JSON.stringify(form) });
       setOpen(false); setForm(emptyForm); await load();
-    } catch (e) { setError(e.message || "ثبت کارمند انجام نشد.") }
-    finally { setBusy(false) }
+    } catch (e) { setError(e.message || "ثبت کارمند انجام نشد."); }
+    finally { setBusy(false); }
   }
 
   return <section>
@@ -41,10 +41,10 @@ export default function Employees() {
 
     {open && <div className="modal"><form className="modal-card" onSubmit={submit}>
       <div className="modal-head"><h2>افزودن کارمند</h2><button type="button" onClick={() => setOpen(false)}>×</button></div>
-      <p style={{ color: "#766e63", marginTop: -8 }}>این کارمند بعد از ثبت، در صفحه انتخاب پروفایل نمایش داده می‌شود. رمز عبور لازم نیست.</p>
+      <p style={{ color: "#766e63", marginTop: -8 }}>نام کاربری اختیاری است؛ سیستم در صورت خالی بودن یک شناسه داخلی می‌سازد.</p>
       <div className="form-grid">
         <label>نام و نام خانوادگی<input value={form.full_name} onChange={e => set("full_name", e.target.value)} required placeholder="مثلاً محمد احمدی" /></label>
-        <label>نام کاربری داخلی <input value={form.username} onChange={e => set("username", e.target.value)} placeholder="اختیاری" /></label>
+        <label>نام کاربری داخلی<input value={form.username} onChange={e => set("username", e.target.value)} placeholder="اختیاری" /></label>
         <label>سمت<input value={form.position} onChange={e => set("position", e.target.value)} placeholder="مثلاً تدوینگر" /></label>
         <label>واحد / دپارتمان<input value={form.department} onChange={e => set("department", e.target.value)} placeholder="مثلاً استودیو" /></label>
         <label>نقش<select value={form.role} onChange={e => set("role", e.target.value)}>{roles.map(r => <option key={r}>{r}</option>)}</select></label>
@@ -52,5 +52,5 @@ export default function Employees() {
       </div>
       <button className="primary" type="submit" disabled={busy}>{busy ? "در حال ثبت..." : "ثبت کارمند"}</button>
     </form></div>}
-  </section>
+  </section>;
 }
