@@ -35,6 +35,24 @@ const idv=uid();if(c.has('id')){keys.unshift('id');b.id=idv}if(c.has('created_at
 async function update(env,u,r,idv,b){const t=RESOURCE[r].table,c=await cols(env,t),keys=(allowed[r]||[]).filter(k=>c.has(k)&&b[k]!==undefined);if(c.has('updated_at'))keys.push('updated_at');if(!keys.length)return json({error:'داده‌ای برای ویرایش نیست'},400);const set=keys.map(k=>`${k}=?`).join(',');const vals=keys.map(k=>k==='updated_at'?new Date().toISOString():b[k]);try{await env.DB.prepare(`UPDATE ${t} SET ${set} WHERE id=?`).bind(...vals,idv).run();await log(env,u,'update',r,idv);return json({ok:true})}catch(e){return json({error:e.message||'ویرایش انجام نشد'},400)}}
 async function handle(req,env){const url=new URL(req.url),path=url.pathname.replace(/^\/api\/?/,'').replace(/\/$/,''),method=req.method;
 if(path==='health')return json({ok:true});
+if(path==='auth/setup'&&method==='POST'){
+  const countRow=await env.DB.prepare('SELECT COUNT(*) n FROM users').first().catch(()=>null);
+  if(!countRow)return json({error:'جدول users وجود ندارد؛ ابتدا migration اولیه (schema.sql) را اجرا کنید'},500);
+  if(Number(countRow.n)>0)return json({error:'راه‌اندازی اولیه قبلاً انجام شده است'},403);
+  const b=await body(req);
+  if(!b.username||!b.password)return json({error:'نام کاربری و رمز عبور الزامی است'},400);
+  if(String(b.password).length<8)return json({error:'رمز عبور باید حداقل ۸ کاراکتر باشد'},400);
+  const c=await cols(env,'users');
+  const idv=uid();
+  const fullName=[b.first_name,b.last_name].filter(Boolean).join(' ')||b.username;
+  const fields={id:idv,username:b.username,full_name:fullName,email:b.email||null,role:'Super Admin',status:'Active',password_hash:await sha256(b.password),permissions:'[]',created_at:new Date().toISOString()};
+  const keys=Object.keys(fields).filter(k=>c.has(k));
+  const ph=keys.map(()=>'?').join(',');
+  try{
+    await env.DB.prepare(`INSERT INTO users(${keys.join(',')}) VALUES(${ph})`).bind(...keys.map(k=>fields[k])).run();
+    return json({ok:true,id:idv},201);
+  }catch(e){return json({error:e.message||'راه‌اندازی انجام نشد'},400)}
+}
 if(path==='auth/login'&&method==='POST'){const b=await body(req);if(!b.username||!b.password)return json({error:'نام کاربری و رمز عبور الزامی است'},400);const u=await env.DB.prepare('SELECT * FROM users WHERE username=?').bind(b.username).first();if(!u||u.status!=='Active'||await sha256(b.password)!==u.password_hash)return json({error:'نام کاربری یا رمز عبور نادرست است'},401);const raw=uid()+uid(),hash=await sha256(raw),expires=new Date(Date.now()+604800000).toISOString();if(!(await tableExists(env,'sessions')))return json({error:'جدول sessions وجود ندارد؛ migration اولیه را اجرا کنید'},500);await env.DB.prepare('INSERT INTO sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)').bind(uid(),u.id,hash,expires).run();const ps=await permissions(env,u);return json({user:{...u,password_hash:undefined,permissions:ps}},{headers:{'set-cookie':`bp_session=${encodeURIComponent(raw)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`}})}
 const u=await auth(req,env);if(path==='auth/me'){return u?json({user:{...u,password_hash:undefined,permissions:await permissions(env,u)}}):json({user:null},401)}if(path==='auth/logout'){const t=token(req);if(t&&await tableExists(env,'sessions'))await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha256(t)).run();return json({ok:true},{headers:{'set-cookie':'bp_session=; Path=/; Max-Age=0'}})}if(!u)return json({error:'احراز هویت لازم است'},401);const ps=await permissions(env,u);
 if(path==='dashboard/stats')return json({stats:await dashboard(env)});
