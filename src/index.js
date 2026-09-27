@@ -1301,7 +1301,7 @@ async function create(env, u, resource, b) {
   try {
     const schema = await env.DB.prepare(`PRAGMA table_info(${table})`).all();
     for (const column of (schema.results || [])) {
-      if (!column.notnull || column.dflt_value !== null || column.name === "id" || data[column.name] !== undefined) continue;
+      if (!column.notnull || column.dflt_value !== null || column.name === "id" || (data[column.name] !== undefined && data[column.name] !== null && data[column.name] !== "")) continue;
       const name = column.name;
       if (name === "username") data[name] = `user_${uid().replaceAll("-", "").slice(0, 12)}`;
       else if (name === "password_hash") data[name] = await sha256(uid());
@@ -1315,12 +1315,12 @@ async function create(env, u, resource, b) {
     }
   } catch {}
 
-  const keys = (allowed[resource] || [])
-    .filter(
-      (key) =>
-        c.has(key) &&
-        data[key] !== undefined
-    );
+  const schemaInfo = await env.DB.prepare("PRAGMA table_info(" + table + ")").all().catch(() => ({ results: [] }));
+  const requiredWithDefaults = new Set((schemaInfo.results || []).filter(column => column.notnull && column.dflt_value !== null).map(column => column.name));
+
+  const keys = (allowed[resource] || []).filter((key) =>
+    c.has(key) && data[key] !== undefined && !(data[key] === null && requiredWithDefaults.has(key))
+  );
 
   /*
    * If DB has password_hash but allowed list does not
