@@ -10,6 +10,7 @@ import Tickets from "./pages/Tickets";
 import Chat from "./pages/Chat";
 import Finance from "./pages/Finance";
 import Projects from "./pages/Projects";
+import Meetings from "./pages/Meetings";
 
 export default function App() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="chat" element={<RequireAccess access="chat"><Chat /></RequireAccess>} />
           <Route path="finance" element={<RequireAccess access="finance"><Finance /></RequireAccess>} />
           <Route path="projects" element={<RequireAccess access="projects"><Projects /></RequireAccess>} />
+          <Route path="meetings" element={<RequireAccess access="projects"><Meetings /></RequireAccess>} />
         </Route>
 
         <Route
