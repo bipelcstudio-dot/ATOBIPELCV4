@@ -18,7 +18,7 @@ const ALL_LINKS = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
-  const links = ALL_LINKS.filter(([, , , key]) => user?.access?.[key]);
+  const links = ALL_LINKS.filter(([, , , key]) => user?.access?.[key] || (Array.isArray(user?.permissions) && (user.permissions.includes(key) || user.permissions.includes(key + ".view") || user.permissions.includes(key + ".all"))));
 
   return <div className="shell">
     <aside className="sidebar">
