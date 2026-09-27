@@ -1297,6 +1297,24 @@ async function create(env, u, resource, b) {
   delete data.created_by_override;
   delete data.sender_id_override;
 
+  // Fill omitted required database columns with safe defaults so optional form fields do not block saves.
+  try {
+    const schema = await env.DB.prepare(`PRAGMA table_info(${table})`).all();
+    for (const column of (schema.results || [])) {
+      if (!column.notnull || column.dflt_value !== null || column.name === "id" || data[column.name] !== undefined) continue;
+      const name = column.name;
+      if (name === "username") data[name] = `user_${uid().replaceAll("-", "").slice(0, 12)}`;
+      else if (name === "password_hash") data[name] = await sha256(uid());
+      else if (["user_id", "created_by", "sender_id", "organizer_id", "manager_id", "assigned_to", "evaluated_by", "approved_by"].includes(name)) data[name] = u.id;
+      else if (["amount", "paid_amount", "budget", "salary", "rate", "score", "progress", "days", "quality", "speed", "responsibility", "teamwork"].includes(name)) data[name] = 0;
+      else if (["date", "meeting_date", "start_date", "end_date", "deadline", "due_date", "month"].includes(name)) data[name] = new Date().toISOString().slice(0, 10);
+      else if (name === "status") data[name] = "Active";
+      else if (name === "type") data[name] = "general";
+      else if (name === "ticket_number" || name === "invoice_number" || name === "contract_number") data[name] = `${name}_${uid().slice(0, 8)}`;
+      else data[name] = "";
+    }
+  } catch {}
+
   const keys = (allowed[resource] || [])
     .filter(
       (key) =>
