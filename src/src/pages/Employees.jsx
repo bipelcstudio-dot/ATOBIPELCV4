@@ -15,6 +15,7 @@ const permissions = [
   ["clients", "مشتریان"],
   ["projects", "پروژه‌ها"],
   ["tasks", "تسک‌ها"],
+  ["meetings", "جلسات"],
   ["finance", "مالی"],
   ["contracts", "قراردادها"],
   ["hr", "منابع انسانی"],
