@@ -1,12 +1,16 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Ticket, MessageCircle, Wallet, FolderKanban, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Ticket, MessageCircle, Wallet, FolderKanban, LogOut, CalendarDays, UserRound, CheckSquare, BriefcaseBusiness } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 // کلید چهارم همون نامی هست که بک‌اند برای access استفاده می‌کنه (index.js -> ROLE_PERMISSIONS)
 const ALL_LINKS = [
   ["/dashboard", "داشبورد", LayoutDashboard, "dashboard"],
   ["/employees", "کارمندان", Users, "employees"],
+  ["/clients", "مشتریان", UserRound, "clients"],
   ["/projects", "پروژه‌ها", FolderKanban, "projects"],
+  ["/tasks", "تسک‌ها", CheckSquare, "projects"],
+  ["/meetings", "جلسات", CalendarDays, "projects"],
+  ["/freelancers", "فریلنسرها", BriefcaseBusiness, "projects"],
   ["/tickets", "درخواست‌ها و تیکت‌ها", Ticket, "tickets"],
   ["/chat", "چت سازمانی", MessageCircle, "chat"],
   ["/finance", "مالی", Wallet, "finance"],
