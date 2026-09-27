@@ -141,6 +141,13 @@ const RESOURCE = {
     search: "title"
   },
 
+  meetings: {
+    table: "meetings",
+    label: "جلسات",
+    perm: "projects",
+    search: "title"
+  },
+
   freelancers: {
     table: "freelancers",
     label: "فریلنسرها",
@@ -268,6 +275,23 @@ const allowed = {
     "description"
   ],
 
+  meetings: [
+    "title",
+    "description",
+    "meeting_date",
+    "start_time",
+    "end_time",
+    "timezone",
+    "location",
+    "meeting_link",
+    "agenda",
+    "notes",
+    "status",
+    "project_id",
+    "organizer_id",
+    "attendees"
+  ],
+
   freelancers: [
     "name",
     "specialty",
@@ -392,6 +416,7 @@ async function permissions(env, u) {
       "clients",
       "projects",
       "tasks",
+      "meetings",
       "freelancers",
       "hr",
       "legal",
